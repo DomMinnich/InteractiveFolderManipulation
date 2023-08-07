@@ -1,0 +1,56 @@
+@echo off
+setlocal enabledelayedexpansion
+
+set "tempFile=%temp%\filelist.txt"
+set "subFolderFile=%temp%\subfolders.txt"
+
+:mainMenu
+cls
+echo Interactive File Explorer
+echo ------------------------
+echo 1. List Files
+echo 2. Find Folders with Same Subfolders
+echo 3. Exit
+echo ------------------------
+set /p "option=Enter your choice: "
+
+if "%option%"=="1" (
+    call :listFiles
+    goto mainMenu
+) else if "%option%"=="2" (
+    call :findFoldersWithSameSubfolders
+    goto mainMenu
+) else if "%option%"=="3" (
+    exit /b
+) else (
+    echo Invalid option. Press any key to continue.
+    pause >nul
+    goto mainMenu
+)
+
+:listFiles
+dir /b > "%tempFile%"
+start notepad "%tempFile%"
+exit /b
+
+:findFoldersWithSameSubfolders
+set "subFolderList="
+
+for /d %%D in (*) do (
+    set "subfolders="
+    for /f "tokens=*" %%F in ('dir /b /s /a:d "%%D" ^| findstr /v /c:"\\%%~nxD$"') do (
+        set "subfolders=!subfolders!%%F\n"
+    )
+    setlocal disabledelayedexpansion
+    echo !subfolders! >> "%subFolderFile%"
+    endlocal
+    set "subFolderList=!subFolderList!%%D\n"
+)
+
+start notepad "%subFolderFile%"
+echo.
+echo Folders with the same subfolders:
+echo ------------------------------
+echo %subFolderList%
+pause >nul
+exit /b
